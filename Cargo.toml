@@ -1,0 +1,12 @@
+[package]
+name = "githeat"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+git2 = "0.18"
+chrono = "0.4"
+ratatui = "0.26"
+crossterm = "0.27"
+
