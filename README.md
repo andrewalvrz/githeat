@@ -30,9 +30,7 @@ cargo install --git https://github.com/yourname/githeat.git
 
 
 
-
-
-
+---
 
 ## 📄 License
 
