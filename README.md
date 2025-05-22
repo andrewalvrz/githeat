@@ -97,7 +97,7 @@ githeat --since 14 --top 5
 ## 🔧 Dev Notes
 
 - Built with Rust 2021
-- Depends on: `git2`, `ratatui`, `crossterm`, `clap`, `serde`, `serde_json`
+- Depends on: `git2`, `ratatui`, `crossterm`, `clap`, `serde`, `serde_json`, `chrono`
 - TUI is rendered via `ratatui`
 - `git2` parses repo history and diffs
 
