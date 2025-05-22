@@ -15,14 +15,29 @@ use chrono::{NaiveDate, Utc, TimeZone};
     about = "🔥 Terminal-based Git contribution heatmap — by Andrew Alvarez"
 )]
 struct Args {
-    #[arg(short, long, help = "Show heatmap grouped by author")]
+    #[arg(short, long)]
     by_author: bool,
 
-    #[arg(short, long, help = "Only include commits from the last N days")]
+    #[arg(short, long)]
     since: Option<u32>,
 
-    #[arg(long, help = "Only include commits after this YYYY-MM-DD date")]
+    #[arg(long)]
     since_date: Option<String>,
+
+    #[arg(long)]
+    top: Option<usize>,
+
+    #[arg(long, value_parser = ["asc", "desc"])]
+    sort: Option<String>,
+
+    #[arg(long)]
+    ext: Option<String>,
+
+    #[arg(long)]
+    path: Option<String>,
+
+    #[arg(long)]
+    export: Option<String>, // e.g., "json" or "md"
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -45,8 +60,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         None => None,
     };
 
-    let commits = parse_repo(args.since, since_date)?;
+    let commits = parse_repo(args.since, since_date, args.ext.clone(), args.path.clone())?;
     let heatmap = generate_heatmap(commits, args.by_author);
-    render_heatmap(&heatmap)?;
+    render_heatmap(&heatmap, args.by_author, args.top, args.sort.clone())?;
+
+    if let Some(format) = args.export {
+        heatmap.export(&format)?;
+    }
+
     Ok(())
 }

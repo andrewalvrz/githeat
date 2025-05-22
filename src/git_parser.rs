@@ -8,14 +8,26 @@ pub struct CommitInfo {
     pub timestamp: i64,
 }
 
-pub fn parse_repo(since_days: Option<u32>, since_date: Option<i64>) -> Result<Vec<CommitInfo>, git2::Error> {
-    let repo = Repository::discover(".")?;
+pub fn parse_repo(
+    since_days: Option<u32>,
+    since_date: Option<i64>,
+    ext_filter: Option<String>,
+    path_filter: Option<String>,
+) -> Result<Vec<CommitInfo>, git2::Error> {
+    let repo = match Repository::discover(".") {
+    Ok(repo) => repo,
+    Err(_) => {
+        eprintln!("❌ No Git repository found. Please run inside a Git repo.");
+        std::process::exit(1);
+    }
+};
+
+
     let mut revwalk = repo.revwalk()?;
     revwalk.push_head()?;
 
     let now = Utc::now().timestamp();
     let threshold = since_date.or_else(|| since_days.map(|d| now - (d as i64 * 86400)));
-
     let mut commits = Vec::new();
 
     for oid in revwalk {
@@ -36,17 +48,17 @@ pub fn parse_repo(since_days: Option<u32>, since_date: Option<i64>) -> Result<Ve
         let mut files = Vec::new();
 
         diff.print(DiffFormat::NameOnly, |_, _, line| {
-            files.push(String::from_utf8_lossy(line.content()).trim().to_string());
+            let filepath = String::from_utf8_lossy(line.content()).trim().to_string();
+            let path_matches = path_filter.as_ref().map_or(true, |p| filepath.contains(p));
+            let ext_matches = ext_filter.as_ref().map_or(true, |ext| filepath.ends_with(ext));
+            if path_matches && ext_matches {
+                files.push(filepath);
+            }
             true
         })?;
 
-        commits.push(CommitInfo {
-            author,
-            files,
-            timestamp: time,
-        });
+        commits.push(CommitInfo { author, files, timestamp: time });
     }
 
     Ok(commits)
 }
-

@@ -1,11 +1,13 @@
 use crate::heatmap::Heatmap;
-use ratatui::{
-    prelude::*,
-    widgets::{Block, Borders, List, ListItem},
-};
+use ratatui::{prelude::*, widgets::{Block, Borders, List, ListItem,}};
 use crossterm::terminal::{enable_raw_mode, disable_raw_mode};
 
-pub fn render_heatmap(data: &Heatmap) -> Result<(), Box<dyn std::error::Error>> {
+pub fn render_heatmap(
+    data: &Heatmap,
+    by_author: bool,
+    top: Option<usize>,
+    sort: Option<String>,
+) -> Result<(), Box<dyn std::error::Error>> {
     enable_raw_mode()?;
     let mut stdout = std::io::stdout();
     let backend = CrosstermBackend::new(&mut stdout);
@@ -13,25 +15,42 @@ pub fn render_heatmap(data: &Heatmap) -> Result<(), Box<dyn std::error::Error>> 
 
     terminal.draw(|f| {
         let size = f.size();
-
-        let items: Vec<ListItem> = if !data.file_counts.is_empty() {
-            data.file_counts
-                .iter()
-                .map(|(file, count)| {
-                    let bar = "█".repeat((*count / 5).max(1));
-                    ListItem::new(format!("{:<40} {}", file, bar))
-                })
-                .collect()
+        let title = if by_author {
+            "Git Heatmap — Author Mode"
         } else {
-            data.author_counts
-                .iter()
-                .map(|(author, count)| {
-                    ListItem::new(format!("{:<20} {} commits", author, count))
-                })
-                .collect()
+            "Git Heatmap — File Mode"
         };
 
-        let block = Block::default().title("Git Heatmap").borders(Borders::ALL);
+        let block = Block::default().title(title).borders(Borders::ALL);
+
+        let mut entries: Vec<_> = if !data.file_counts.is_empty() {
+            data.file_counts.iter().collect()
+        } else {
+            data.author_counts.iter().collect()
+        };
+
+        if let Some(order) = sort {
+            if order == "asc" {
+                entries.sort_by(|a, b| a.1.cmp(b.1));
+            } else {
+                entries.sort_by(|a, b| b.1.cmp(a.1));
+            }
+        } else {
+            entries.sort_by(|a, b| b.1.cmp(a.1));
+        }
+
+        if let Some(limit) = top {
+            entries.truncate(limit);
+        }
+
+        let items: Vec<ListItem> = entries
+            .iter()
+            .map(|(key, count)| {
+                let bar = "█".repeat((*count / 3).max(1));
+                ListItem::new(format!("{:<40} {} ({})", key, bar, count))
+            })
+            .collect();
+
         let list = List::new(items).block(block);
         f.render_widget(list, size);
     })?;

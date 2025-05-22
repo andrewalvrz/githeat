@@ -1,9 +1,34 @@
 use std::collections::HashMap;
 use crate::git_parser::CommitInfo;
+use std::fs::File;
+use std::io::Write;
+use serde::Serialize;
 
+#[derive(Serialize)]
 pub struct Heatmap {
     pub file_counts: HashMap<String, usize>,
     pub author_counts: HashMap<String, usize>,
+    pub total_commits: usize,
+}
+
+impl Heatmap {
+    pub fn export(&self, format: &str) -> Result<(), Box<dyn std::error::Error>> {
+        match format {
+            "json" => {
+                let json = serde_json::to_string_pretty(self)?;
+                std::fs::write("githeat_export.json", json)?;
+            }
+            "md" => {
+                let mut file = File::create("githeat_export.md")?;
+                writeln!(file, "# Githeat Report\n")?;
+                for (k, v) in &self.file_counts {
+                    writeln!(file, "- `{}`: **{}** commits", k, v)?;
+                }
+            }
+            _ => eprintln!("Unsupported export format: {}", format),
+        }
+        Ok(())
+    }
 }
 
 pub fn generate_heatmap(commits: Vec<CommitInfo>, by_author: bool) -> Heatmap {
@@ -18,8 +43,10 @@ pub fn generate_heatmap(commits: Vec<CommitInfo>, by_author: bool) -> Heatmap {
     }
 
     if by_author {
-        file_counts.clear(); // Don't display file stats if in author mode
+        file_counts.clear();
     }
 
-    Heatmap { file_counts, author_counts }
+    let total_commits = file_counts.values().sum::<usize>() + author_counts.values().sum::<usize>();
+
+    Heatmap { file_counts, author_counts, total_commits }
 }
