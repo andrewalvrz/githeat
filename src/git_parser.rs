@@ -1,6 +1,7 @@
 use git2::{Repository, DiffFormat};
 use chrono::Utc;
 
+#[allow(dead_code)]
 pub struct CommitInfo {
     pub author: String,
     pub files: Vec<String>,
