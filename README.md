@@ -27,3 +27,13 @@
 ### Via Cargo (Rust)
 ```bash
 cargo install --git https://github.com/yourname/githeat.git
+
+
+
+
+
+
+
+## 📄 License
+
+MIT © [Andrew Alvarez](https://github.com/andrewalvrz)
