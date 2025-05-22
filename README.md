@@ -20,6 +20,14 @@
 - 🧩 Works with all Git repos
 - 🖥️ Terminal UI using `ratatui`
 
+
+---
+
+## 📄 License
+
+MIT © [Andrew Alvarez](https://github.com/andrewalvrz)
+
+
 ---
 
 ## 🛠 Installation
@@ -30,8 +38,3 @@ cargo install --git https://github.com/yourname/githeat.git
 
 
 
----
-
-## 📄 License
-
-MIT © [Andrew Alvarez](https://github.com/andrewalvrz)
