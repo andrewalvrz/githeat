@@ -2,11 +2,21 @@
 name = "githeat"
 version = "0.1.0"
 edition = "2021"
+description = "🔥 Terminal-based Git contribution heatmap — filterable by author, path, time, and extension"
+authors = ["Andrew Alvarez <andrew.alvarez616@gmail.com>"]
+homepage = "https://www.linkedin.com/in/andrewalvrz/"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/andrewalvrz/githeat"
+keywords = ["git", "cli", "heatmap", "tui"]
+categories = ["command-line-utilities", "development-tools"]
+exclude = ["/.github", "/.vscode", "target/"]
 
 [dependencies]
-clap = { version = "4.5", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
 git2 = "0.18"
-chrono = "0.4"
-ratatui = "0.26"
+ratatui = "0.24"
 crossterm = "0.27"
-
+chrono = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
