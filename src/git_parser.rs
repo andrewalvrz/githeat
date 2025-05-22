@@ -7,17 +7,20 @@ pub struct CommitInfo {
     pub timestamp: i64,
 }
 
-pub fn parse_repo(since_days: Option<u32>) -> Result<Vec<CommitInfo>, git2::Error> {
+pub fn parse_repo(since_days: Option<u32>, since_date: Option<i64>) -> Result<Vec<CommitInfo>, git2::Error> {
     let repo = Repository::discover(".")?;
     let mut revwalk = repo.revwalk()?;
     revwalk.push_head()?;
 
-    let threshold = since_days.map(|d| Utc::now().timestamp() - (d as i64 * 86400));
+    let now = Utc::now().timestamp();
+    let threshold = since_date.or_else(|| since_days.map(|d| now - (d as i64 * 86400)));
+
     let mut commits = Vec::new();
 
     for oid in revwalk {
         let commit = repo.find_commit(oid?)?;
         let time = commit.time().seconds();
+
         if let Some(t) = threshold {
             if time < t {
                 continue;
@@ -36,8 +39,13 @@ pub fn parse_repo(since_days: Option<u32>) -> Result<Vec<CommitInfo>, git2::Erro
             true
         })?;
 
-        commits.push(CommitInfo { author, files, timestamp: time });
+        commits.push(CommitInfo {
+            author,
+            files,
+            timestamp: time,
+        });
     }
 
     Ok(commits)
 }
+
