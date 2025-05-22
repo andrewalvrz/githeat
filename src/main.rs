@@ -6,7 +6,7 @@ use clap::Parser;
 use git_parser::parse_repo;
 use heatmap::generate_heatmap;
 use tui::render_heatmap;
-use chrono::NaiveDate;
+use chrono::{NaiveDate, Utc, TimeZone};
 
 #[derive(Parser)]
 #[command(
@@ -28,11 +28,14 @@ struct Args {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
-    // Convert --since-date into a UNIX timestamp
     let since_date = match &args.since_date {
         Some(date_str) => {
             match NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
-                Ok(date) => Some(date.and_hms_opt(0, 0, 0).unwrap().timestamp()),
+                Ok(date) => {
+                    let datetime = date.and_hms_opt(0, 0, 0).unwrap();
+                    let utc_time = Utc.from_local_datetime(&datetime).unwrap();
+                    Some(utc_time.timestamp())
+                }
                 Err(_) => {
                     eprintln!("❌ Invalid date format. Use YYYY-MM-DD.");
                     std::process::exit(1);
